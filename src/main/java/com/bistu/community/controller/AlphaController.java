@@ -1,10 +1,17 @@
 package com.bistu.community.controller;
 
 import com.bistu.community.service.AlphaService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 
 @Controller
 @RequestMapping("/alpha")
@@ -23,4 +30,127 @@ public class AlphaController {
     public String getData(){
         return alphaService.find();
     }
+
+    @RequestMapping("/http")
+    public void http(HttpServletRequest request, HttpServletResponse response){
+        //获取请求数据
+        System.out.println(request.getMethod());
+        System.out.println(request.getServletPath());
+        Enumeration<String> enumeration = request.getHeaderNames();
+        while(enumeration.hasMoreElements()){
+            String name = enumeration.nextElement();
+            String value = request.getHeader(name);
+            System.out.println(name + ":"+value);
+        }
+        System.out.println(request.getParameter("code"));
+
+        //返回响应数据
+        response.setContentType("text/html;charset=utf-8");
+        try(
+                PrintWriter writer = response.getWriter();
+        ) {
+            writer.write("<h1>测试</h1>");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+//    GET请求
+    //  /students?current=1&limit=20
+    @RequestMapping(path = "/students",method = RequestMethod.GET)
+    @ResponseBody
+    public String getStudents(
+            @RequestParam(name = "current",required = false,defaultValue = "1")int current,
+            @RequestParam(name = "limit",required = false,defaultValue = "10")int limit) {
+        System.out.println(current);
+        System.out.println(limit);
+
+        return "some Students";
+    }
+
+    //  /students/123
+    @RequestMapping(path = "/students/{id}", method = RequestMethod.GET)
+    @ResponseBody
+    public String getStudent(@PathVariable("id") int id){
+        System.out.println(id);
+        return "a student";
+    }
+
+    //POST请求
+    @RequestMapping(path = "/student", method = RequestMethod.POST)
+    @ResponseBody
+    //以下函数的参数与html中表单的参数一致即可传递数据
+    public String saveStudent(String name, int age){
+        System.out.println(name);
+        System.out.println(age);
+        return "success";
+    }
+
+    //响应HTML数据
+    @RequestMapping(path = "/teacher", method = RequestMethod.GET)
+    public ModelAndView getTeacher() {
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("name", "阿伟");
+        mav.addObject("age", "8");
+        mav.setViewName("/demo/view");//此处的view指的是view.html
+        return mav;
+    }
+
+    @RequestMapping(path = "/school", method = RequestMethod.GET)
+    public String getSchool(Model model){
+        model.addAttribute("name","摆信科");
+        model.addAttribute("age",120);
+        return "/demo/view";
+    }
+    // 响应JSON数据（异步请求）
+    // Java对象 -> JSON字符串 -> Js对象
+    @RequestMapping(path = "/emp", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Object>getEmp(){
+        Map<String, Object> emp = new HashMap<>();
+        emp.put("name","阿伟");
+        emp.put("age","8");
+        emp.put("salary",10000.00);
+        return emp;
+
+    }
+
+    //集合型JSON数据
+    @RequestMapping(path = "/emps", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Map<String, Object>>getEmps() {
+        List<Map<String, Object>> list = new ArrayList();
+        Map<String, Object> emp = new HashMap<>();
+        emp.put("name", "阿伟");
+        emp.put("age", "8");
+        emp.put("salary", 10000.00);
+        list.add(emp);
+
+        emp = new HashMap<>();
+        emp.put("name", "冲哥");
+        emp.put("age", "22");
+        emp.put("salary", 100000.00);
+        list.add(emp);
+
+        emp = new HashMap<>();
+        emp.put("name", "梓洋");
+        emp.put("age", "25");
+        emp.put("salary", 15000.00);
+        list.add(emp);
+
+        emp = new HashMap<>();
+        emp.put("name", "io");
+        emp.put("age", "22");
+        emp.put("salary", 999999999.00);
+        list.add(emp);
+
+        emp = new HashMap<>();
+        emp.put("name", "Troy");
+        emp.put("age", "22");
+        emp.put("salary", 999999999.00);
+        list.add(emp);
+
+        return list;
+    }
+
+
 }
