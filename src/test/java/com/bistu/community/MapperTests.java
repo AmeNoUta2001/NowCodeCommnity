@@ -1,8 +1,10 @@
 package com.bistu.community;
 
 import com.bistu.community.dao.DiscussPostMapper;
+import com.bistu.community.dao.LoginTicketMapper;
 import com.bistu.community.dao.UserMapper;
 import com.bistu.community.entity.DiscussPost;
+import com.bistu.community.entity.LoginTicket;
 import com.bistu.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +26,9 @@ public class MapperTests {
 
     @Autowired
     private DiscussPostMapper discussPostMapper;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     @Test
     public void testSelectUser() {
@@ -73,6 +78,17 @@ public class MapperTests {
 
         int rows = discussPostMapper.selectDiscussPostRows(149);
         System.out.println(rows);
+    }
+
+    @Test
+    public void testInsertLoginTicket(){
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUser_id(101);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+        loginTicket.setTicket("abc");
+        loginTicket.setStatus(0);
+
+        loginTicketMapper.insertLoginTicket(loginTicket);
     }
 
 }

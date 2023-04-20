@@ -1,8 +1,11 @@
 package com.bistu.community.controller;
 
 import com.bistu.community.service.AlphaService;
+import com.bistu.community.util.CommunityUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -152,5 +155,43 @@ public class AlphaController {
         return list;
     }
 
+    // Cookies示例
+    @RequestMapping(path = "/cookie/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setCookie(HttpServletResponse response) {
+        // 创建cookie
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+        // 设置cookie生效范围
+        cookie.setPath("/community/alpha");
+        // 设置cookie的生存时间
+        // cookie默认是存在内存中，关掉网页就会消失，设置生存时间后会存在硬盘中，直至生存时间结束失效
+        // 单位是秒
+        cookie.setMaxAge(60*10);
+        // 发送cookie
+        response.addCookie(cookie);
 
+        return "set cookie";
+    }
+    @RequestMapping(path = "/cookie/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCookie(@CookieValue("code") String code) {
+        System.out.println(code);
+        return "get cookie";
+    }
+
+    @RequestMapping(path = "/session/set", method = RequestMethod.GET)
+    @ResponseBody
+    // Session和Cookie不同 Session不需要创建 通过注解注入即可
+    public String setSession(HttpSession session) {
+        session.setAttribute("id" ,1);
+        session.setAttribute("name","test");
+        return "set session";
+    }
+    @RequestMapping(path = "/session/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSession(HttpSession session) {
+        System.out.println(session.getAttribute("id" ));
+        System.out.println(session.getAttribute("name"));
+        return "get session";
+    }
 }
