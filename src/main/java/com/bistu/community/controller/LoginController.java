@@ -4,13 +4,17 @@ import com.bistu.community.entity.User;
 import com.bistu.community.service.UserService;
 import com.bistu.community.util.CommunityConstant;
 import com.google.code.kaptcha.Producer;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,6 +35,9 @@ public class LoginController implements CommunityConstant {
 
     @Autowired
     private Producer kaptchaProducer;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
@@ -94,9 +101,48 @@ public class LoginController implements CommunityConstant {
         } catch (IOException e) {
                 logger.error("响应验证码失败:" + e.getMessage());
         }
-
-
     }
 
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login(String username, String password, String code, boolean rememberMe,
+                        Model model, HttpSession session, HttpServletResponse response){
+//        检查验证码
+        String kaptcha = (String) session.getAttribute("kaptcha");
+        // equalsIgnoreCase方法的逻辑与equals一样，区别在于该方法不区分大小写
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            model.addAttribute("codeMsg", "验证码不正确");
+            return "site/login";
+        }
+//        检查账号，密码（主要在业务层处理）
+        // 检查是否勾选记住我，更改登录状态持续时间，后面两个参数是在application.properties中设置的
+        int expiredSeconds = rememberMe ? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;
+        // map存储之前在UserService中写的逻辑
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        // 登陆成功的一系列操作
+        if(map.containsKey("ticket")){
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
+            // 设置cookie的作用域
+            cookie.setPath(contextPath);
+            // 设置cookie的持续时间
+            cookie.setMaxAge(expiredSeconds);
+            // 向response中添加cookie
+            response.addCookie(cookie);
+            // 登陆成功，重定向到首页
+            return "redirect:/index";
+        } else {
+            // 登陆失败
+            model.addAttribute("usernameMsg", map.get("usernameMsg"));
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+
+            return "site/login";
+        }
+    }
+    @RequestMapping(path = "/logout", method = RequestMethod.GET)
+    public String logout(@CookieValue("ticket") String ticket){
+        userService.logout(ticket);
+        // 重定向时，如果存在同名的POST请求和GET请求，默认重定向到GET请求。
+        return "redirect:/login";
+
+    }
 
 }

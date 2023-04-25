@@ -1,6 +1,8 @@
 package com.bistu.community.service;
 
+import com.bistu.community.dao.LoginTicketMapper;
 import com.bistu.community.dao.UserMapper;
+import com.bistu.community.entity.LoginTicket;
 import com.bistu.community.entity.User;
 import com.bistu.community.util.CommunityConstant;
 import com.bistu.community.util.CommunityUtil;
@@ -27,6 +29,9 @@ public class UserService implements CommunityConstant {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     @Value("${community.path.domain}")
     private String domain;
@@ -106,6 +111,59 @@ public class UserService implements CommunityConstant {
         } else {
             return ACTIVATION_FAILURE;
         }
+    }
+
+    /**
+     * 创建一个登录方法
+     * 用户登录会有很多状态，登陆成功，用户不存在，密码错误，账号未激活等等
+     * 用户从前端传入的密码是明文，但是数据库里面的密码是通过md5加密的，所以不能直接拿前端传回的密码和数据库内的密码进行比对
+     */
+    public Map<String, Object> login(String username, String password, int expriedSeconds) {
+        HashMap<String, Object> map = new HashMap<>();
+//        判空
+        if(StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空");
+            return map;
+        }
+
+        if(StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空");
+            return map;
+        }
+
+        // 验证账号
+        User user = userMapper.selectByName(username);
+        if (user == null) {
+            map.put("usernameMsg", "该账号不存在");
+            return map;
+        }
+        // 验证账号状态
+        if(user.getStatus() == 0){
+            map.put("usernameMsg", "该账号未激活");
+            return map;
+        }
+
+        // 验证密码 前面为了安全还对密码添加了salt 不要忘记添加
+        password = CommunityUtil.md5(password + user.getSalt());
+        if(!user.getPassword().equals(password)){
+            map.put("passwordMsg", "密码错误！");
+            return map;
+        }
+
+        // 生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUser_id(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expriedSeconds * 1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        map.put("ticket", loginTicket.getTicket());
+        return map;
+    }
+    public void logout(String ticket){
+        // 改变登录状态，就相当于退出登录
+        loginTicketMapper.updateStatus(ticket, 1);
     }
 
 }

@@ -91,4 +91,14 @@ public class MapperTests {
         loginTicketMapper.insertLoginTicket(loginTicket);
     }
 
+    @Test
+    public void testSelectLoginTicket(){
+        LoginTicket loginTicket = loginTicketMapper.selectByTicket("abc");
+        System.out.println(loginTicket);
+
+        loginTicketMapper.updateStatus("abc", 1);
+        loginTicket = loginTicketMapper.selectByTicket("abc");
+        System.out.println(loginTicket);
+
+    }
 }
