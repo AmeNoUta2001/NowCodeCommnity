@@ -3,8 +3,9 @@ package com.bistu.community.entity;
 import java.util.Date;
 
 public class LoginTicket {
+
     private int id;
-    private int user_id;
+    private int userId;
     private String ticket;
     private int status;
     private Date expired;
@@ -17,12 +18,12 @@ public class LoginTicket {
         this.id = id;
     }
 
-    public int getUser_id() {
-        return user_id;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getTicket() {
@@ -51,9 +52,9 @@ public class LoginTicket {
 
     @Override
     public String toString() {
-        return "login_ticket{" +
+        return "LoginTicket{" +
                 "id=" + id +
-                ", user_id=" + user_id +
+                ", userId=" + userId +
                 ", ticket='" + ticket + '\'' +
                 ", status=" + status +
                 ", expired=" + expired +

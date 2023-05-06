@@ -10,9 +10,11 @@ public interface LoginTicketMapper {
 //    但是这种方法最好用在SQL语句较少的业务中，如果SQL语句多的话还是XML看着舒服
 //    而且在这是以字符串的形式写的语句，也就是说这种方式没有标签提示，而且表名和字段名都是手写的，容易出错，测试没有问题后再继续
 //    在写多行SQL语句时 最好在每行的结尾加一个空格 不让多个SQL语句连在一起
+
+    // 在使用TempletEngine时，一定要用变量名，而不是字段名！！！
     @Insert({
             "insert into login_ticket(user_id,ticket,status,expired)" ,
-            "values(#{user_id}, #{ticket}, #{status}, #{expired})"
+            "values(#{userId},#{ticket},#{status},#{expired})"
     })
     /**
      * @Options注解在此处的用处跟application.properties中useGeneratedKeys的作用一样，都是实现id字段的自增

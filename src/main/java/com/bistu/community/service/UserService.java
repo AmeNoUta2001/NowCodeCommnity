@@ -118,15 +118,15 @@ public class UserService implements CommunityConstant {
      * 用户登录会有很多状态，登陆成功，用户不存在，密码错误，账号未激活等等
      * 用户从前端传入的密码是明文，但是数据库里面的密码是通过md5加密的，所以不能直接拿前端传回的密码和数据库内的密码进行比对
      */
-    public Map<String, Object> login(String username, String password, int expriedSeconds) {
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
         HashMap<String, Object> map = new HashMap<>();
 //        判空
-        if(StringUtils.isBlank(username)) {
+        if (StringUtils.isBlank(username)) {
             map.put("usernameMsg", "账号不能为空");
             return map;
         }
 
-        if(StringUtils.isBlank(password)) {
+        if (StringUtils.isBlank(password)) {
             map.put("passwordMsg", "密码不能为空");
             return map;
         }
@@ -138,32 +138,39 @@ public class UserService implements CommunityConstant {
             return map;
         }
         // 验证账号状态
-        if(user.getStatus() == 0){
+        if (user.getStatus() == 0) {
             map.put("usernameMsg", "该账号未激活");
             return map;
         }
 
         // 验证密码 前面为了安全还对密码添加了salt 不要忘记添加
         password = CommunityUtil.md5(password + user.getSalt());
-        if(!user.getPassword().equals(password)){
+        if (!user.getPassword().equals(password)) {
             map.put("passwordMsg", "密码错误！");
             return map;
         }
 
         // 生成登录凭证
         LoginTicket loginTicket = new LoginTicket();
-        loginTicket.setUser_id(user.getId());
+        loginTicket.setUserId(user.getId());
         loginTicket.setTicket(CommunityUtil.generateUUID());
         loginTicket.setStatus(0);
-        loginTicket.setExpired(new Date(System.currentTimeMillis() + expriedSeconds * 1000));
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
         loginTicketMapper.insertLoginTicket(loginTicket);
 
         map.put("ticket", loginTicket.getTicket());
         return map;
     }
-    public void logout(String ticket){
+
+    public void logout(String ticket) {
         // 改变登录状态，就相当于退出登录
         loginTicketMapper.updateStatus(ticket, 1);
     }
+
+//    根据ticket查询用户数据
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
 
 }

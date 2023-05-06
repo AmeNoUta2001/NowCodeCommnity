@@ -83,7 +83,7 @@ public class MapperTests {
     @Test
     public void testInsertLoginTicket(){
         LoginTicket loginTicket = new LoginTicket();
-        loginTicket.setUser_id(101);
+        loginTicket.setUserId(101);
         loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
         loginTicket.setTicket("abc");
         loginTicket.setStatus(0);
