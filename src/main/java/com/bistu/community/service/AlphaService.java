@@ -1,6 +1,7 @@
 package com.bistu.community.service;
 
 import com.bistu.community.dao.AlphaDao;
+import com.bistu.community.dao.UserMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 public class AlphaService {
     @Autowired
     private AlphaDao alphaDao;
+    @Autowired
+    private UserMapper userMapper;
     public AlphaService(){
         System.out.println("实例化AlphaService");
     }
