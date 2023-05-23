@@ -76,9 +76,10 @@ public class DiscussPostController implements CommunityConstant {
         // 评论：帖子的评论
         // 回复：评论的评论
         // 评论列表
-        List<Comment> commentList =  commentService.findCommentByEntity(ENTITY_TYPE_POST, post.getId(), page.getOffset(), page.getLimit());
+        List<Comment> commentList = commentService.findCommentsByEntity(
+                ENTITY_TYPE_POST, post.getId(), page.getOffset(), page.getLimit());
         // 评论VO列表
-        List<Map<String , Object>> commentVoList = new ArrayList<>();
+        List<Map<String, Object>> commentVoList = new ArrayList<>();
         if (commentList != null) {
             for (Comment comment : commentList) {
                 Map<String, Object> commentVo = new HashMap<>();
@@ -88,9 +89,10 @@ public class DiscussPostController implements CommunityConstant {
                 commentVo.put("user", userService.findUserById(comment.getUserId()));
 
                 // 回复列表
-                List<Comment> replyList = commentService.findCommentByEntity(ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
+                List<Comment> replyList = commentService.findCommentsByEntity(
+                        ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
                 // 回复VO列表
-                List<Map<String , Object>> replyVoList = new ArrayList<>();
+                List<Map<String, Object>> replyVoList = new ArrayList<>();
                 if (replyList != null) {
                     for (Comment reply : replyList) {
                         Map<String, Object> replyVo = new HashMap<>();
@@ -99,13 +101,14 @@ public class DiscussPostController implements CommunityConstant {
                         // 作者
                         replyVo.put("user", userService.findUserById(reply.getUserId()));
                         // 回复目标
-                        User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getUserId());
+                        User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                         replyVo.put("target", target);
 
                         replyVoList.add(replyVo);
                     }
                 }
-                commentVo.put("relays" ,replyVoList);
+                commentVo.put("replys", replyVoList);
+
                 // 回复数量
                 int replyCount = commentService.findCommentCount(ENTITY_TYPE_COMMENT, comment.getId());
                 commentVo.put("replyCount", replyCount);

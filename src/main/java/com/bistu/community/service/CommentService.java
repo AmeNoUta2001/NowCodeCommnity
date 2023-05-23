@@ -12,7 +12,7 @@ public class CommentService {
     @Autowired
     private CommentMapper commentMapper;
 
-    public List<Comment> findCommentByEntity(int entityType, int entityId, int offset, int limit) {
+    public List<Comment> findCommentsByEntity(int entityType, int entityId, int offset, int limit) {
         return commentMapper.selectCommentByEntity(entityType,entityId,offset,limit);
     }
 
