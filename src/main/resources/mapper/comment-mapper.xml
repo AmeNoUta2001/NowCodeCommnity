@@ -30,6 +30,7 @@
         and entity_id = #{entityId}
     </select>
 
+    <!-- 带下划线的是字段，驼峰命名的是参数 -->
     <insert id="insertComment" parameterType="Comment">
         insert into comment(<include refid="insertFields"></include>)
         values(#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})

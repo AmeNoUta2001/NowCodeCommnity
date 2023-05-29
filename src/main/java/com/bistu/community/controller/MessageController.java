@@ -5,6 +5,7 @@ import com.bistu.community.entity.Page;
 import com.bistu.community.entity.User;
 import com.bistu.community.service.MessageService;
 import com.bistu.community.service.UserService;
+import com.bistu.community.util.CommunityUtil;
 import com.bistu.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,11 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class MessageController {
@@ -80,6 +79,11 @@ public class MessageController {
         model.addAttribute("letters", letters);
         // 私信目标
         model.addAttribute("target", gerLetterTarget(conversationId));
+        // 设置已读
+        List<Integer> ids = getLetterIds(litterList);
+        if(!ids.isEmpty()) {
+            messageService.readMessage(ids);
+        }
 
         return "/site/letter-detail";
     }
@@ -95,6 +99,47 @@ public class MessageController {
         } else {
             return userService.findUserById(id0);
         }
+    }
+
+    /**
+     *
+     * @param letterList
+     * @return 需要更改状态的id
+     */
+    private List<Integer> getLetterIds(List<Message> letterList) {
+        List<Integer> ids = new ArrayList<>();
+        if (letterList != null) {
+            for (Message message : letterList) {
+                // 因为只有接收者才会更改消息状态（已读、未读）所以在此处做一个判断
+                if(hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0){
+                    ids.add(message.getId());
+                }
+            }
+        }
+
+        return ids;
+    }
+    @RequestMapping(path = "/letter/send", method = RequestMethod.POST)
+    @ResponseBody
+    public String sendLetter(String toName, String content) {
+        User target = userService.findUserByName(toName);
+        if(target == null) {
+            return CommunityUtil.getJSONString(1, "目标用户不存在");
+        }
+        Message message = new Message();
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        //  拼接conversationId
+        if(message.getFromId() < message.getToId()) {
+            message.setConversationId(message.getFromId() + "_" + message.getToId());
+        } else {
+            message.setConversationId(message.getToId() + "_" + message.getFromId());
+        }
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        messageService.addMessage(message);
+
+        return CommunityUtil.getJSONString(0);
     }
 
 }
