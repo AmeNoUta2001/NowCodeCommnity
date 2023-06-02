@@ -140,6 +140,7 @@ public class MessageController {
             message.setConversationId(message.getToId() + "_" + message.getFromId());
         }
         message.setContent(content);
+
         message.setCreateTime(new Date());
         messageService.addMessage(message);
 
