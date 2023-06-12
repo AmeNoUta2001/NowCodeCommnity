@@ -25,11 +25,11 @@ public class LikeController {
     @ResponseBody
     // 按照项目的逻辑 点赞功能是用户登陆之后才能使用的，但是我们在此先不做处理
     // 因为后续会使用SpringSecurity对拦截器进行重构，用这个模块统一处理安全和权限的问题
-    public String like(int entityType, int entityId) {
+    public String like(int entityType, int entityId, int entityUserId) {
         User user = hostHolder.getUser();
 
         // 点赞
-        likeService.like(user.getId(), entityType, entityId);
+        likeService.like(user.getId(), entityType, entityId, entityUserId);
         // 数量
         long likeCount = likeService.findEntityLikeCount(entityType, entityId);
         // 状态

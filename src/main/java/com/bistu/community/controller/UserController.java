@@ -2,6 +2,7 @@ package com.bistu.community.controller;
 
 import com.bistu.community.annotation.LoginRequired;
 import com.bistu.community.entity.User;
+import com.bistu.community.service.LikeService;
 import com.bistu.community.service.UserService;
 import com.bistu.community.util.CommunityUtil;
 import com.bistu.community.util.HostHolder;
@@ -42,6 +43,9 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
 
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
@@ -112,6 +116,20 @@ public class UserController {
         }
     }
 
-
+    // 个人主页
+    @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
+    public String getProfile(@PathVariable("userId") int userId, Model model) {
+        User user = userService.findUserById(userId);
+        // 判断传入的ID是否存在
+        if(user == null) {
+            throw new RuntimeException("该用户不存在！");
+        }
+        // 用户
+        model.addAttribute("user", user);
+        // 点赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+        return "/site/profile";
+    }
 
 }
