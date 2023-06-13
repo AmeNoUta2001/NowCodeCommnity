@@ -2,8 +2,10 @@ package com.bistu.community.controller;
 
 import com.bistu.community.annotation.LoginRequired;
 import com.bistu.community.entity.User;
+import com.bistu.community.service.FollowService;
 import com.bistu.community.service.LikeService;
 import com.bistu.community.service.UserService;
+import com.bistu.community.util.CommunityConstant;
 import com.bistu.community.util.CommunityUtil;
 import com.bistu.community.util.HostHolder;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,9 +26,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant{
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Value("${community.path.upload}")
@@ -46,6 +49,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
@@ -129,6 +135,20 @@ public class UserController {
         // 点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
+
+        // 关注数量
+        long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+        // 粉丝数量
+        long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+        // 是否已关注
+        boolean hasFollowed = false;
+        if(hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
+
         return "/site/profile";
     }
 
