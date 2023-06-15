@@ -24,13 +24,13 @@ public class RedisKeyUtil {
     // 某个用户关注的实体,以时间为zset的分数，目的是更好的应对业务需求的变化,不一定是用户，也可以是帖子或者其他的。
     // 下面的userId指的是 谁关注的
     // followee:userId:entityType => zset(entityId,now)
-    public static String gerFolloweeKey(int userId, int entityType) {
+    public static String getFolloweeKey(int userId, int entityType) {
         return PREFIX_FOLLOWEE + SPLIT + userId + SPLIT + entityType;
     }
 
     // 某个实体拥有的粉丝
     // follower:entityType:entityId => zset(userId,now)
-    public static String gerFollowerKey(int entityType, int entityId) {
+    public static String getFollowerKey(int entityType, int entityId) {
         return PREFIX_FOLLOWER + SPLIT + entityType + SPLIT + entityId;
     }
 
