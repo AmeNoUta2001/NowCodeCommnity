@@ -4,6 +4,7 @@ import com.bistu.community.entity.LoginTicket;
 import org.apache.ibatis.annotations.*;
 
 @Mapper
+@Deprecated
 public interface LoginTicketMapper {
 //    一般业务中不会删除数据，只会改变数据的状态。这样可以方便以后进行统计等工作
 //    此处使用了一些新的注解，这些注解可以把一个或多个字符串拼成SQL语句，跟在xml里写SQL的效果是一样的
