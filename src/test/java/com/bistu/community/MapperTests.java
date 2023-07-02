@@ -64,13 +64,13 @@ public class MapperTests {
 
     @Test
     public void updateUser() {
-        int rows = userMapper.updateStatus(150, 1);
+        int rows = userMapper.updateStatus(171, 1);
         System.out.println(rows);
 
-        rows = userMapper.updateHeader(150, "http://www.nowcoder.com/102.png");
-        System.out.println(rows);
+//        rows = userMapper.updateHeader(150, "http://www.nowcoder.com/102.png");
+//        System.out.println(rows);
 
-        rows = userMapper.updatePassword(150, "hello");
+        rows = userMapper.updatePassword(171, "123");
         System.out.println(rows);
     }
 

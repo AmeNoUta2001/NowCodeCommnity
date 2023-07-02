@@ -4,10 +4,7 @@ import com.bistu.community.dao.LoginTicketMapper;
 import com.bistu.community.dao.UserMapper;
 import com.bistu.community.entity.LoginTicket;
 import com.bistu.community.entity.User;
-import com.bistu.community.util.CommunityConstant;
-import com.bistu.community.util.CommunityUtil;
-import com.bistu.community.util.MailClient;
-import com.bistu.community.util.RedisKeyUtil;
+import com.bistu.community.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +35,9 @@ public class UserService implements CommunityConstant {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private HostHolder hostHolder;
 
     @Value("${community.path.domain}")
     private String domain;
@@ -195,12 +195,43 @@ public class UserService implements CommunityConstant {
 
     }
 
-    public int updateHeader(int userId, String headerUrl){
+    public int updateHeader(int userId, String headerUrl) {
         // 这个方法接口里有
 //        return userMapper.updateHeader(userId, headerUrl);
         int rows = userMapper.updateHeader(userId, headerUrl);
         cleanCache(userId);
         return rows;
+    }
+
+    public Map<String, Object> updatePassword(int userId, String oldPassword, String newPassword) {
+        // 获取当前用户
+//        User user = userMapper.selectById(userId);
+        User user = hostHolder.getUser();
+        // hashmap存储错误信息
+        HashMap<String, Object> map = new HashMap<>();
+
+        // 空值处理
+        if (StringUtils.isBlank(oldPassword)) {
+            map.put("oldPasswordMsg", "原密码不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(newPassword)) {
+            map.put("passwordMsg", "新密码不能为空！");
+            return map;
+        }
+        // 给前端传回的旧密码加盐
+        oldPassword = CommunityUtil.md5(oldPassword + user.getSalt());
+        // 与数据库中的密码比较
+        if (!user.getPassword().equals(oldPassword)) {
+            map.put("oldPasswordMsg", "原密码错误！");
+            return map;
+        }
+        // 更新密码
+//        userMapper.updatePassword(userId, CommunityUtil.md5(newPassword + user.getSalt()));
+        userMapper.updatePassword(hostHolder.getUser().getId(), CommunityUtil.md5(newPassword + user.getSalt()));
+
+        cleanCache(userId);
+        return map;
     }
 
     public User findUserByName (String username) {
