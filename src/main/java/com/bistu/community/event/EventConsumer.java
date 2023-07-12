@@ -1,8 +1,11 @@
 package com.bistu.community.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bistu.community.entity.DiscussPost;
 import com.bistu.community.entity.Event;
 import com.bistu.community.entity.Message;
+import com.bistu.community.service.DiscussPostService;
+import com.bistu.community.service.ElasticsearchService;
 import com.bistu.community.service.MessageService;
 import com.bistu.community.util.CommunityConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,6 +26,12 @@ public class EventConsumer implements CommunityConstant {
 
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private DiscussPostService discussPostService;
+
+    @Autowired
+    private ElasticsearchService elasticsearchService;
 
     @KafkaListener(topics = {TOPIC_COMMENT, TOPIC_FOLLOW, TOPIC_LIKE})
     // 在这里用一个方法处理评论、点赞、关注这三个事件
@@ -59,6 +68,25 @@ public class EventConsumer implements CommunityConstant {
 
         message.setContent(JSONObject.toJSONString(content));
         messageService.addMessage(message);
+    }
+
+    // 消费发帖事件
+    @KafkaListener(topics = {TOPIC_PUBLISH})
+    public void handlePublishMessage(ConsumerRecord record) {
+        if(record == null || record.value() == null) {
+            logger.error("消息的内容为空！");
+            return;
+        }
+        // 把生产者生产的JSON字符串再转换回Evnet对象
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if (event == null) {
+            logger.error("消息格式错误！");
+            return;
+        }
+        // 查询帖子
+        DiscussPost post = discussPostService.findDiscussPostById(event.getEntityId());
+        // 将贴子存入es服务器
+        elasticsearchService.saveDiscussPost(post);
     }
 
 }

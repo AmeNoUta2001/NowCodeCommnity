@@ -1,9 +1,7 @@
 package com.bistu.community.controller;
 
-import com.bistu.community.entity.Comment;
-import com.bistu.community.entity.DiscussPost;
-import com.bistu.community.entity.Page;
-import com.bistu.community.entity.User;
+import com.bistu.community.entity.*;
+import com.bistu.community.event.EventProducer;
 import com.bistu.community.service.CommentService;
 import com.bistu.community.service.DiscussPostService;
 import com.bistu.community.service.LikeService;
@@ -40,6 +38,9 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     // 处理请求
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
@@ -53,7 +54,16 @@ public class DiscussPostController implements CommunityConstant {
         post.setTitle(title);
         post.setContent(content);
         post.setCreateTime(new Date());
-        discussPostService.addDisscussPost(post);
+        discussPostService.addDiscussPost(post);
+
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(user.getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(post.getId());
+        eventProducer.fireEvent(event);
+
 
         // 报错将来统一处理
         return CommunityUtil.getJSONString(0,"发布成功！");

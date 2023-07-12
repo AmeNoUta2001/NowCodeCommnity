@@ -25,7 +25,7 @@ public class DiscussPostService {
         return discussPostMapper.selectDiscussPostRows(userId);
     }
 
-    public int addDisscussPost(DiscussPost post) {
+    public int addDiscussPost(DiscussPost post) {
         if(post == null){
             throw new IllegalArgumentException("参数不能为空！");
         }
